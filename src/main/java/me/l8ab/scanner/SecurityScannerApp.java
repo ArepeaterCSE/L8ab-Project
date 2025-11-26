@@ -1,4 +1,5 @@
 ﻿package me.l8ab.scanner;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
