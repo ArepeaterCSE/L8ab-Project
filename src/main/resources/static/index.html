@@ -1,0 +1,59 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L8ab.me | Security Tools</title>
+    <style>
+        :root { --primary: #00ff88; --bg: #050505; --card: #111; --text: #eee; }
+        body { background-color: var(--bg); color: var(--text); font-family: 'Courier New', monospace; margin: 0; display: flex; flex-direction: column; min-height: 100vh; align-items: center; justify-content: center; }
+        .main-card { width: 90%; max-width: 600px; background: var(--card); padding: 40px; border: 1px solid #333; border-radius: 12px; box-shadow: 0 0 50px rgba(0, 255, 136, 0.05); }
+        h1 { color: var(--primary); text-transform: uppercase; letter-spacing: 2px; font-size: 24px; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 20px; }
+        h1 span { font-size: 14px; color: #666; float: right; margin-top: 8px; }
+        .input-group { position: relative; margin-top: 30px; }
+        input { width: 100%; padding: 15px; background: #000; border: 1px solid #444; color: #fff; font-family: inherit; font-size: 16px; box-sizing: border-box; transition: 0.3s; }
+        input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 15px rgba(0, 255, 136, 0.2); }
+        button { width: 100%; margin-top: 15px; padding: 15px; background: var(--primary); color: #000; border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; }
+        button:hover { background: #00cc6a; letter-spacing: 3px; }
+        #results { margin-top: 30px; display: none; border-top: 1px dashed #333; padding-top: 20px; }
+        .vuln-item { color: #ff4444; margin-bottom: 8px; display: block; border-left: 2px solid #ff4444; padding-left: 10px; }
+        .score { font-size: 40px; font-weight: bold; display: block; margin-bottom: 15px; }
+        .secure { color: var(--primary); } .critical { color: #ff4444; } .warning { color: #ffaa00; }
+        footer { margin-top: 50px; font-size: 12px; color: #444; text-align: center; padding-bottom: 20px; }
+        a { color: #666; text-decoration: none; } a:hover { color: var(--primary); }
+    </style>
+</head>
+<body>
+    <div class="main-card">
+        <h1>L8ab Security <span>v1.0</span></h1>
+        <p style="color: #888;">Enter a domain to analyze HTTP security headers.</p>
+        <div class="input-group">
+            <input type="text" id="target" placeholder="example.com">
+            <button onclick="scan()">Analyze Target</button>
+        </div>
+        <div id="results"></div>
+    </div>
+    <footer>&copy; 2024 L8ab.me Platform.<br><br><a href="mailto:L8ab@proton.me">Contact: L8ab@proton.me</a></footer>
+    <script>
+        async function scan() {
+            const btn = document.querySelector('button'); const res = document.getElementById('results'); const input = document.getElementById('target').value;
+            if(!input) return;
+            btn.innerHTML = "SCANNING..."; btn.disabled = true; res.style.display = 'none';
+            try {
+                const req = await fetch('/api/scan', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({url: input}) });
+                const data = await req.json();
+                if(data.status === 'error') { res.innerHTML = <span class="critical"></span>; }
+                else {
+                    let colorClass = data.score.includes('A') ? 'secure' : (data.score.includes('B') ? 'warning' : 'critical');
+                    let html = <span class="score "></span><div style="margin-bottom:20px; color:#fff">Target: </div>;
+                    if(data.vulnerabilities.length > 0) { html += <div style="margin-bottom:10px; color:#888;">Issues Found:</div>; data.vulnerabilities.forEach(v => { html += <span class="vuln-item"></span>; }); }
+                    else { html += <span style="color:var(--primary)">[+] Excellent! No critical header issues found.</span>; }
+                    res.innerHTML = html;
+                }
+                res.style.display = 'block';
+            } catch(e) { res.innerHTML = <span class="critical">System Error: Could not reach backend.</span>; res.style.display = 'block'; }
+            btn.innerHTML = "ANALYZE TARGET"; btn.disabled = false;
+        }
+    </script>
+</body>
+</html>
